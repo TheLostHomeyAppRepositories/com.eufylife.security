@@ -1,7 +1,7 @@
 "use strict";
 
 const Homey = require("homey");
-const { PushRegisterService, HttpService, PushClient, sleep } = require("eufy-node-client");
+const { PushNotificationService, HTTPApi } = require("eufy-security-client");
 
 const flowActions = require("./lib/flow/actions.js");
 const flowConditions = require("./lib/flow/conditions.js");
@@ -46,15 +46,15 @@ class App extends Homey.App {
     this.log("onInit - Loaded settings", {...this.appSettings, 'USERNAME': 'LOG', PASSWORD: 'LOG'});
 
     if (this.appSettings.HUBS_AMOUNT > 0) {
-        await eufyCommandSendHelper.init(this.appSettings);
-        await flowActions.init();
-        await flowConditions.init();
+        // await eufyCommandSendHelper.init(this.appSettings);
+        // await flowActions.init();
+        // await flowConditions.init();
     }
 
     if (this.appSettings.CREDENTIALS) {
-        await PushClient.init();
-        await eufyNotificationCheckHelper.init(this.appSettings);
-        await flowTriggers.init();
+        // await PushClient.init();
+        // await eufyNotificationCheckHelper.init(this.appSettings);
+        // await flowTriggers.init();
     }
   }
 
@@ -81,6 +81,8 @@ class App extends Homey.App {
         if (!_httpService) {
             _httpService = await this.setHttpService(this.appSettings);
         }
+
+        await _httpService.updateDeviceInfo();
 
         await this.setDeviceStore();
 
@@ -170,18 +172,18 @@ class App extends Homey.App {
       this.log("eufyLogin - Loaded settings", {...this.appSettings, 'USERNAME': 'LOG', PASSWORD: 'LOG'});
 
       if (settings.HUBS_AMOUNT  > 0) {
-        await this.setDeviceStore();
-        await eufyCommandSendHelper.init(this.appSettings);
-        await flowActions.init();
-        await flowConditions.init();
+        // await this.setDeviceStore();
+        // await eufyCommandSendHelper.init(this.appSettings);
+        // await flowActions.init();
+        // await flowConditions.init();
       } 
 
       if (settings.CREDENTIALS) {
-        if(initNotificationCheckHelper) {
-            await PushClient.init();
-            await eufyNotificationCheckHelper.init(this.appSettings);
-        } 
-        await flowTriggers.init();
+        // if(initNotificationCheckHelper) {
+        //     await PushClient.init();
+        //     await eufyNotificationCheckHelper.init(this.appSettings);
+        // } 
+        // await flowTriggers.init();
       }
 
       return;
@@ -199,7 +201,7 @@ class App extends Homey.App {
 
   async setHttpService(settings) {
     try {
-      return new HttpService(settings.USERNAME, settings.PASSWORD);
+      return new HTTPApi(settings.USERNAME, settings.PASSWORD);
     } catch (err) {
       this.error(err);
     }
@@ -219,7 +221,11 @@ class App extends Homey.App {
 
   async setDeviceStore() {
     let deviceStore = [];
-    let devices = await _httpService.listDevices();
+    let devices = await _httpService.getDevices();
+    
+    if(devices) {
+        devices = Object.values(devices);
+    }
 
     if(devices.length) {
         Homey.app.log("setDeviceStore - Mapping deviceList", devices);

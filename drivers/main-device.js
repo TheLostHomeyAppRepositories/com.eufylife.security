@@ -1,8 +1,9 @@
 const Homey = require('homey');
-const { CommandType, sleep } = require('eufy-node-client');
+// const { CommandType, sleep } = require('eufy-security-client');
 const eufyCommandSendHelper = require("../../lib/helpers/eufy-command-send.helper");
 const eufyNotificationCheckHelper = require("../../lib/helpers/eufy-notification-check.helper");
 const eufyParameterHelper = require("../../lib/helpers/eufy-parameter.helper");
+const { sleep } = require("../../lib/utils");
 let _httpService = undefined;
 
 module.exports = class mainDevice extends Homey.Device {
@@ -236,10 +237,10 @@ module.exports = class mainDevice extends Homey.Device {
             _httpService = Homey.app.getHttpService();
             const deviceObject = this.getData();
 
-            let quickResponse = await _httpService.voiceList(deviceObject.device_sn);
+            let quickResponse = await _httpService.getVoices(deviceObject.device_sn);
             Homey.app.log(`[Device] ${this.getName()} - Set quickResponse`, quickResponse);
 
-            quickResponse = quickResponse.map(v => v.voice_id);
+            quickResponse = Object.keys(quickResponse);
             Homey.app.log(`[Device] ${this.getName()} - Mapped quickResponse`, quickResponse);
 
             if(quickResponse) {
